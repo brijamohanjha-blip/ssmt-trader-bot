@@ -58,5 +58,8 @@
       "extreme": 1.15923
     }
   },
-  "last_ts": "2026-09-10T15:30:00-04:00"
+  "last_ts": "2026-09-10T15:30:00-04:00",
+  "open_trades": [],
+  "weekly_pnl": 0.0,
+  "weekly_key": null
 }
