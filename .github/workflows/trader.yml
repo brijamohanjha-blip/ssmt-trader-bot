@@ -1,4 +1,4 @@
-name: SSMT Live Trader (DRY RUN)
+name: SSMT Live Trader (DEMO ACCOUNT)
 
 on:
   schedule:
@@ -26,7 +26,7 @@ jobs:
 
       - name: Run strategy check
         env:
-          DRY_RUN: "true"
+          DRY_RUN: "false"
           OANDA_API_TOKEN: ${{ secrets.OANDA_API_TOKEN }}
           OANDA_ACCOUNT_ID: ${{ secrets.OANDA_ACCOUNT_ID }}
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}

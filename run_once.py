@@ -149,8 +149,15 @@ def place_market_order(instrument: str, units: int, sl_price: float, tp_price: f
         log("ORDER_ERROR", detail=str(resp))
     else:
         fill = resp.get("orderFillTransaction", {})
-        log("ORDER_FILLED", detail=f"{instrument} units={units} price={fill.get('price')} tradeID={fill.get('id')}")
+        trade_id = fill.get("tradeOpened", {}).get("tradeID")
+        log("ORDER_FILLED", detail=f"{instrument} units={units} price={fill.get('price')} tradeID={trade_id}")
     return resp
+
+
+def fetch_oanda_trade(trade_id: str) -> dict:
+    r = requests.get(f"{OANDA_BASE}/v3/accounts/{OANDA_ACCOUNT_ID}/trades/{trade_id}", headers=OANDA_HEADERS, timeout=30)
+    r.raise_for_status()
+    return r.json()["trade"]
 
 
 # ---------------------------------------------------------------------------
@@ -354,51 +361,95 @@ def fire_entry(state: LiveState, case: dict, st: dict, row: pd.Series, live: boo
 
     detail = (f"{case['lagger'].upper()} {case['direction']} entry={entry_price:.5f} sl={sl_price:.5f} "
               f"tp={tp_price:.5f} sl_pips={sl_pips:.2f} units={units} candle_time={row['timestamp']}")
-
-    # Track the trade forward to SL/TP regardless of live/backfill, so weekly PnL stays accurate
-    # even for signals that fired before the bot started watching live.
-    state.open_trades.append({
-        "case_key": case["key"],
-        "pair_key": case["lagger"],
-        "instrument": INSTRUMENTS[case["lagger"]],
-        "direction": case["direction"],
-        "entry_price": entry_price,
-        "sl_price": sl_price,
-        "tp_price": tp_price,
-        "sl_pips": sl_pips,
-        "units": units,
-        "entry_time": row["timestamp"].isoformat(),
-    })
+    instrument = INSTRUMENTS[case["lagger"]]
 
     if not live:
+        # Historical (backfill) signal -- track via candle simulation only, no real order.
+        state.open_trades.append({
+            "case_key": case["key"], "pair_key": case["lagger"], "instrument": instrument,
+            "direction": case["direction"], "entry_price": entry_price, "sl_price": sl_price,
+            "tp_price": tp_price, "sl_pips": sl_pips, "units": units,
+            "entry_time": row["timestamp"].isoformat(), "oanda_trade_id": None,
+        })
         log("BACKFILL_SIGNAL_SKIPPED", case["key"], detail)
         return
 
     log("ENTRY_SIGNAL", case["key"], detail)
-    instrument = INSTRUMENTS[case["lagger"]]
-    place_market_order(instrument, units, sl_price, tp_price)
 
-    mode = "DRY RUN (no real order)" if DRY_RUN else "LIVE ORDER PLACED"
+    if DRY_RUN:
+        state.open_trades.append({
+            "case_key": case["key"], "pair_key": case["lagger"], "instrument": instrument,
+            "direction": case["direction"], "entry_price": entry_price, "sl_price": sl_price,
+            "tp_price": tp_price, "sl_pips": sl_pips, "units": units,
+            "entry_time": row["timestamp"].isoformat(), "oanda_trade_id": None,
+        })
+        place_market_order(instrument, units, sl_price, tp_price)
+        notify_telegram(
+            f"<b>SSMT signal -- DRY RUN (no real order)</b>\n"
+            f"Pair: {instrument}\nDirection: {case['direction'].upper()}\nEntry: {entry_price:.5f}\n"
+            f"Stop: {sl_price:.5f} ({sl_pips:.1f} pips)\nTarget: {tp_price:.5f} ({FIXED_TP_PIPS:.0f} pips)\n"
+            f"Units: {units}\nCandle: {row['timestamp']}\nWeekly PnL so far: ${state.weekly_pnl:,.2f}"
+        )
+        return
+
+    # Live: place a real market order on the OANDA practice (demo money) account, with SL/TP
+    # attached so OANDA's own engine executes the exit at the exact price/time -- not our polling.
+    resp = place_market_order(instrument, units, sl_price, tp_price)
+    fill = resp.get("orderFillTransaction")
+    if not fill:
+        notify_telegram(
+            f"<b>SSMT signal -- ORDER FAILED</b>\n"
+            f"Pair: {instrument}\nDirection: {case['direction'].upper()}\nIntended entry: {entry_price:.5f}\n"
+            f"Reason: {resp}"
+        )
+        return
+
+    real_entry_price = float(fill["price"])
+    trade_id = fill.get("tradeOpened", {}).get("tradeID")
+    state.open_trades.append({
+        "case_key": case["key"], "pair_key": case["lagger"], "instrument": instrument,
+        "direction": case["direction"], "entry_price": real_entry_price, "sl_price": sl_price,
+        "tp_price": tp_price, "sl_pips": sl_pips, "units": units,
+        "entry_time": row["timestamp"].isoformat(), "oanda_trade_id": trade_id,
+    })
     notify_telegram(
-        f"<b>SSMT signal -- {mode}</b>\n"
-        f"Pair: {instrument}\n"
-        f"Direction: {case['direction'].upper()}\n"
-        f"Entry: {entry_price:.5f}\n"
-        f"Stop: {sl_price:.5f} ({sl_pips:.1f} pips)\n"
-        f"Target: {tp_price:.5f} ({FIXED_TP_PIPS:.0f} pips)\n"
-        f"Units: {units}\n"
-        f"Candle: {row['timestamp']}\n"
+        f"<b>SSMT signal -- LIVE ORDER PLACED (demo account)</b>\n"
+        f"Pair: {instrument}\nDirection: {case['direction'].upper()}\n"
+        f"Fill price: {real_entry_price:.5f} (intended: {entry_price:.5f})\n"
+        f"Stop: {sl_price:.5f} ({sl_pips:.1f} pips)\nTarget: {tp_price:.5f} ({FIXED_TP_PIPS:.0f} pips)\n"
+        f"Units: {units}\nOANDA trade ID: {trade_id}\nCandle: {row['timestamp']}\n"
         f"Weekly PnL so far: ${state.weekly_pnl:,.2f}"
     )
 
 
 def resolve_open_trades(state: LiveState, row: pd.Series, live: bool):
-    """Check every pending trade against this candle's high/low; close out any that hit
-    SL or TP. If a single candle's range spans both levels, SL is assumed to hit first
-    (conservative -- matches worst-case fill convention used in the backtest)."""
+    """Close out any pending trade that has hit SL/TP. Trades with a real OANDA trade ID
+    (placed live, not DRY_RUN/backfill) are resolved by asking OANDA what actually happened --
+    the broker's own fill price/time, not our estimate. Simulated trades (DRY_RUN or backfill)
+    are resolved by racing SL vs TP through this candle's high/low, with SL assumed to hit first
+    if a single candle's range spans both levels (conservative, matches the backtest convention)."""
     ts = row["timestamp"]
     still_open = []
     for tr in state.open_trades:
+        if tr.get("oanda_trade_id"):
+            trade = fetch_oanda_trade(tr["oanda_trade_id"])
+            if trade["state"] != "CLOSED":
+                still_open.append(tr)
+                continue
+            exit_price = float(trade["averageClosePrice"])
+            pnl = float(trade["realizedPL"])
+            outcome = "WIN" if pnl >= 0 else "LOSS"
+            close_ts = pd.Timestamp(trade["closeTime"]).tz_convert(NY_TZ)
+            state.credit_weekly_pnl(close_ts, pnl)
+            log("TRADE_CLOSED", tr["case_key"], f"{outcome} pnl={pnl:.2f} exit={exit_price:.5f} oanda_close_time={close_ts}")
+            notify_telegram(
+                f"<b>SSMT trade closed -- {outcome} (OANDA-confirmed)</b>\n"
+                f"Pair: {tr['instrument']}\nDirection: {tr['direction'].upper()}\n"
+                f"Entry: {tr['entry_price']:.5f} -> Exit: {exit_price:.5f}\n"
+                f"PnL: ${pnl:,.2f}\nClosed: {close_ts}\nWeekly PnL now: ${state.weekly_pnl:,.2f}"
+            )
+            continue
+
         h, l = row[f"high_{tr['pair_key']}"], row[f"low_{tr['pair_key']}"]
         sl_price, tp_price = tr["sl_price"], tr["tp_price"]
 
@@ -419,7 +470,7 @@ def resolve_open_trades(state: LiveState, row: pd.Series, live: bool):
         log("TRADE_CLOSED", tr["case_key"], f"{outcome} pnl={pnl:.2f} exit={exit_price:.5f} candle_time={ts}")
         if live:
             notify_telegram(
-                f"<b>SSMT trade closed -- {outcome}</b>\n"
+                f"<b>SSMT trade closed -- {outcome} (simulated)</b>\n"
                 f"Pair: {tr['instrument']}\n"
                 f"Direction: {tr['direction'].upper()}\n"
                 f"Entry: {tr['entry_price']:.5f} -> Exit: {exit_price:.5f}\n"
