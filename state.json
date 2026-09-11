@@ -8,9 +8,9 @@
   },
   "cur_range_acc": {
     "high_eur": 1.15993,
-    "low_eur": 1.15917,
+    "low_eur": 1.15903,
     "high_gbp": 1.35135,
-    "low_gbp": 1.35044
+    "low_gbp": 1.35012
   },
   "case_state": {
     "eur_high": {
@@ -19,9 +19,9 @@
       "entered": false,
       "touch_count": 0,
       "leader_cum_high": 1.15993,
-      "leader_cum_low": 1.15917,
+      "leader_cum_low": 1.15903,
       "lagger_cum_high": 1.35135,
-      "lagger_cum_low": 1.35044,
+      "lagger_cum_low": 1.35012,
       "threshold": 1.35194,
       "extreme": 1.35266
     },
@@ -31,17 +31,17 @@
       "entered": false,
       "touch_count": 0,
       "leader_cum_high": 1.35135,
-      "leader_cum_low": 1.35044,
+      "leader_cum_low": 1.35012,
       "lagger_cum_high": 1.15993,
-      "lagger_cum_low": 1.15917,
+      "lagger_cum_low": 1.15903,
       "threshold": 1.1609224999999999,
       "extreme": 1.16139
     },
     "eur_low": {
       "triggered": true,
       "invalidated": false,
-      "entered": false,
-      "touch_count": 1,
+      "entered": true,
+      "touch_count": 2,
       "leader_cum_high": 1.15993,
       "leader_cum_low": 1.1594,
       "lagger_cum_high": 1.35135,
@@ -55,19 +55,33 @@
       "entered": false,
       "touch_count": 0,
       "leader_cum_high": 1.35135,
-      "leader_cum_low": 1.35044,
+      "leader_cum_low": 1.35012,
       "lagger_cum_high": 1.15993,
-      "lagger_cum_low": 1.15917,
+      "lagger_cum_low": 1.15903,
       "threshold": 1.1599875000000002,
       "extreme": 1.15952
     }
   },
-  "last_ts": "2026-09-11T06:15:00-04:00",
-  "open_trades": [],
+  "last_ts": "2026-09-11T06:30:00-04:00",
+  "open_trades": [
+    {
+      "case_key": "eur_low",
+      "pair_key": "gbp",
+      "instrument": "GBP_USD",
+      "direction": "long",
+      "entry_price": 1.35036,
+      "sl_price": 1.3495000000000001,
+      "tp_price": 1.3525,
+      "sl_pips": 10.0,
+      "units": 100000,
+      "entry_time": "2026-09-11T06:30:00-04:00",
+      "oanda_trade_id": "11"
+    }
+  ],
   "weekly_pnl": 564.0000000000225,
   "weekly_key": "2026-09-06/2026-09-12",
   "instrument_lock": {
     "eur": false,
-    "gbp": false
+    "gbp": true
   }
 }
