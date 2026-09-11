@@ -9,7 +9,7 @@
   "cur_range_acc": {
     "high_eur": 1.15993,
     "low_eur": 1.15901,
-    "high_gbp": 1.35135,
+    "high_gbp": 1.35178,
     "low_gbp": 1.35012
   },
   "case_state": {
@@ -20,7 +20,7 @@
       "touch_count": 0,
       "leader_cum_high": 1.15993,
       "leader_cum_low": 1.15901,
-      "lagger_cum_high": 1.35135,
+      "lagger_cum_high": 1.35178,
       "lagger_cum_low": 1.35012,
       "threshold": 1.35194,
       "extreme": 1.35266
@@ -30,7 +30,7 @@
       "invalidated": false,
       "entered": false,
       "touch_count": 0,
-      "leader_cum_high": 1.35135,
+      "leader_cum_high": 1.35178,
       "leader_cum_low": 1.35012,
       "lagger_cum_high": 1.15993,
       "lagger_cum_low": 1.15901,
@@ -54,7 +54,7 @@
       "invalidated": false,
       "entered": false,
       "touch_count": 0,
-      "leader_cum_high": 1.35135,
+      "leader_cum_high": 1.35178,
       "leader_cum_low": 1.35012,
       "lagger_cum_high": 1.15993,
       "lagger_cum_low": 1.15901,
@@ -62,23 +62,9 @@
       "extreme": 1.15952
     }
   },
-  "last_ts": "2026-09-11T08:00:00-04:00",
-  "open_trades": [
-    {
-      "case_key": "eur_low",
-      "pair_key": "gbp",
-      "instrument": "GBP_USD",
-      "direction": "long",
-      "entry_price": 1.35036,
-      "sl_price": 1.3495000000000001,
-      "tp_price": 1.3525,
-      "sl_pips": 10.0,
-      "units": 100000,
-      "entry_time": "2026-09-11T06:30:00-04:00",
-      "oanda_trade_id": "11"
-    }
-  ],
-  "weekly_pnl": 564.0000000000225,
+  "last_ts": "2026-09-11T08:15:00-04:00",
+  "open_trades": [],
+  "weekly_pnl": 474.0000000000225,
   "weekly_key": "2026-09-06/2026-09-12",
   "instrument_lock": {
     "eur": false,
