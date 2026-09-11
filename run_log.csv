@@ -55,3 +55,4 @@ timestamp_utc,event,case,detail
 2026-09-11T10:15:50.288718+00:00,NEW_WINDOW,,2026-09-10 Q3 (NY AM) (prior valid: True)
 2026-09-11T10:15:50.288919+00:00,TRIGGER,eur_low,leader=EUR broke its prior-quarter low
 2026-09-11T10:15:50.289033+00:00,PROCESSED,,1 new candle(s), caught up to 2026-09-11 06:00:00-04:00
+2026-09-11T10:20:56.878102+00:00,NO_NEW_CANDLES,,
