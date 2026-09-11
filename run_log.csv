@@ -38,3 +38,5 @@ timestamp_utc,event,case,detail
 2026-09-11T06:34:08.153054+00:00,PROCESSED,,1 new candle(s), caught up to 2026-09-11 02:15:00-04:00
 2026-09-11T09:12:39.490846+00:00,TRIGGER,eur_low,leader=EUR broke its prior-quarter low
 2026-09-11T09:12:39.491089+00:00,PROCESSED,,10 new candle(s), caught up to 2026-09-11 04:45:00-04:00
+2026-09-11T09:16:27.050576+00:00,FIRST_TOUCH_IGNORED,eur_low,threshold=1.35010 candle_time=2026-09-11 05:00:00-04:00
+2026-09-11T09:16:27.050746+00:00,PROCESSED,,1 new candle(s), caught up to 2026-09-11 05:00:00-04:00
