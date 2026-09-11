@@ -7,12 +7,15 @@ in, per-case trigger/invalidation progress, the last candle timestamp processed)
 to state.json and committed back to the repo by the workflow after each run, so the strategy
 logic picks up exactly where it left off on the next invocation.
 
-Rules match live_trader.py / analysis.ipynb exactly (frozen, no re-tuning here):
+Rules match analysis.ipynb section 3 exactly (frozen, no re-tuning here):
   - Across every consecutive 6-hour quarter transition, a leader pair sweeping its own
-    prior-quarter extreme while the lagger fails to follow is a signal.
-  - Entry: lagger retraces 25% back into its own prior-quarter range -> market order.
-  - Stop: lagger's prior-quarter extreme, floored at 10 pips. Target: fixed 30 pips.
-  - Risk: fixed $100/trade, sized off the (post-floor) stop distance.
+    prior-quarter extreme while the lagger fails to follow means SSMT is active.
+  - While SSMT stays active, every genuine touch of the lagger's 25%-retracement line (the
+    line must fall inside that candle's own high/low range) is tracked -- the FIRST touch is
+    always ignored, the trade only fires on the SECOND touch.
+  - Stop: fixed 10 pips. Target: fixed 20 pips (2:1). Risk: fixed $100/trade.
+  - At most one trade per quarter per instrument -- if both the high-side and low-side case
+    would fire for the same lagger in the same quarter, only the earlier one is taken.
 
 SAFETY: DRY_RUN defaults to true (reads the DRY_RUN env var). In dry-run, no real orders are
 placed -- only Telegram alerts are sent describing what *would* have been taken.
@@ -45,9 +48,9 @@ NY_TZ = "America/New_York"
 
 PIP = 0.0001
 RISK_PER_TRADE = 100.0
-TP_PIPS = 30.0
+FIXED_SL_PIPS = 10.0
+FIXED_TP_PIPS = 20.0
 RETRACE_PCT = 0.25
-MIN_SL_PIPS = 10.0
 
 Q_ORDER = {"Q1 (Asia)": 0, "Q2 (London)": 1, "Q3 (NY AM)": 2, "Q4 (NY PM)": 3}
 
@@ -154,7 +157,7 @@ def place_market_order(instrument: str, units: int, sl_price: float, tp_price: f
 # State load/save
 # ---------------------------------------------------------------------------
 def new_case_state():
-    return {"triggered": False, "invalidated": False, "entered": False,
+    return {"triggered": False, "invalidated": False, "entered": False, "touch_count": 0,
             "leader_cum_high": -np.inf, "leader_cum_low": np.inf,
             "lagger_cum_high": -np.inf, "lagger_cum_low": np.inf,
             "threshold": None, "extreme": None}
@@ -170,10 +173,12 @@ class LiveState:
         self.open_trades = []  # list of dicts: pending dry-run trades not yet resolved to SL/TP
         self.weekly_pnl = 0.0
         self.weekly_key = None
+        self.instrument_lock = {"eur": False, "gbp": False}  # 1-trade-per-quarter-per-instrument cap
 
     def start_new_window(self, prior_range):
         self.prior_range = prior_range
         self.case_state = {c["key"]: new_case_state() for c in CASES}
+        self.instrument_lock = {"eur": False, "gbp": False}
         if prior_range is not None:
             for c in CASES:
                 rng = prior_range[f"high_{c['lagger']}"] - prior_range[f"low_{c['lagger']}"]
@@ -192,6 +197,7 @@ class LiveState:
             "open_trades": self.open_trades,
             "weekly_pnl": self.weekly_pnl,
             "weekly_key": self.weekly_key,
+            "instrument_lock": self.instrument_lock,
         }
 
     @classmethod
@@ -205,6 +211,7 @@ class LiveState:
         s.open_trades = d.get("open_trades", [])
         s.weekly_pnl = d.get("weekly_pnl", 0.0)
         s.weekly_key = d.get("weekly_key")
+        s.instrument_lock = d.get("instrument_lock", {"eur": False, "gbp": False})
         return s
 
     def credit_weekly_pnl(self, ts: pd.Timestamp, amount: float):
@@ -311,33 +318,35 @@ def process_candle(state: LiveState, row: pd.Series, live: bool):
 
         if st["triggered"] and not st["invalidated"] and not st["entered"]:
             lagger_extreme = state.prior_range[f"high_{c['lagger']}"] if c["side"] == "high" else state.prior_range[f"low_{c['lagger']}"]
-            if c["side"] == "high":
-                if lagger_h > lagger_extreme:
-                    st["invalidated"] = True
+            broke_own_extreme = lagger_h > lagger_extreme if c["side"] == "high" else lagger_l < lagger_extreme
+            if broke_own_extreme:
+                st["invalidated"] = True
+                if live:
+                    log("INVALIDATED", c["key"])
+                continue
+
+            genuine_touch = lagger_l <= st["threshold"] <= lagger_h
+            if genuine_touch:
+                st["touch_count"] += 1
+                if st["touch_count"] < 2:
                     if live:
-                        log("INVALIDATED", c["key"])
-                    continue
-                if lagger_l <= st["threshold"]:
-                    fire_entry(state, c, st, row, live)
-                    st["entered"] = True
-            else:
-                if lagger_l < lagger_extreme:
-                    st["invalidated"] = True
-                    if live:
-                        log("INVALIDATED", c["key"])
-                    continue
-                if lagger_h >= st["threshold"]:
-                    fire_entry(state, c, st, row, live)
-                    st["entered"] = True
+                        log("FIRST_TOUCH_IGNORED", c["key"], f"threshold={st['threshold']:.5f} candle_time={row['timestamp']}")
+                else:
+                    if state.instrument_lock.get(c["lagger"], False):
+                        st["entered"] = True  # instrument already taken this quarter by the sibling case
+                        if live:
+                            log("SKIPPED_DEDUPE", c["key"], f"{c['lagger'].upper()} already traded this quarter")
+                    else:
+                        state.instrument_lock[c["lagger"]] = True
+                        fire_entry(state, c, st, row, live)
+                        st["entered"] = True
 
 
 def fire_entry(state: LiveState, case: dict, st: dict, row: pd.Series, live: bool):
     entry_price = st["threshold"]
-    extreme = st["extreme"]
-    natural_sl_pips = abs(extreme - entry_price) / PIP
-    sl_pips = max(natural_sl_pips, MIN_SL_PIPS)
+    sl_pips = FIXED_SL_PIPS
     sl_price = entry_price + sl_pips * PIP if case["side"] == "high" else entry_price - sl_pips * PIP
-    tp_price = entry_price - TP_PIPS * PIP if case["direction"] == "short" else entry_price + TP_PIPS * PIP
+    tp_price = entry_price - FIXED_TP_PIPS * PIP if case["direction"] == "short" else entry_price + FIXED_TP_PIPS * PIP
 
     units = int(round((RISK_PER_TRADE / (sl_pips * PIP))))
     if case["direction"] == "short":
@@ -376,7 +385,7 @@ def fire_entry(state: LiveState, case: dict, st: dict, row: pd.Series, live: boo
         f"Direction: {case['direction'].upper()}\n"
         f"Entry: {entry_price:.5f}\n"
         f"Stop: {sl_price:.5f} ({sl_pips:.1f} pips)\n"
-        f"Target: {tp_price:.5f} ({TP_PIPS:.0f} pips)\n"
+        f"Target: {tp_price:.5f} ({FIXED_TP_PIPS:.0f} pips)\n"
         f"Units: {units}\n"
         f"Candle: {row['timestamp']}\n"
         f"Weekly PnL so far: ${state.weekly_pnl:,.2f}"
