@@ -33,3 +33,6 @@ timestamp_utc,event,case,detail
 2026-09-11T06:16:13.624519+00:00,TRIGGER,gbp_high,leader=GBP broke its prior-quarter high
 2026-09-11T06:16:13.624681+00:00,FIRST_TOUCH_IGNORED,gbp_high,threshold=1.16131 candle_time=2026-09-11 02:00:00-04:00
 2026-09-11T06:16:13.624784+00:00,PROCESSED,,2 new candle(s), caught up to 2026-09-11 02:00:00-04:00
+2026-09-11T06:34:07.520678+00:00,ENTRY_SIGNAL,gbp_high,EUR short entry=1.16131 sl=1.16231 tp=1.15931 sl_pips=10.00 units=-100000 candle_time=2026-09-11 02:15:00-04:00
+2026-09-11T06:34:07.580569+00:00,ORDER_FILLED,,EUR_USD units=-100000 price=1.16095 tradeID=5
+2026-09-11T06:34:08.153054+00:00,PROCESSED,,1 new candle(s), caught up to 2026-09-11 02:15:00-04:00
