@@ -3,7 +3,7 @@
   "prior_range": null,
   "cur_range_acc": {
     "high_eur": 1.15977,
-    "low_eur": 1.15962,
+    "low_eur": 1.15931,
     "high_gbp": 1.35289,
     "low_gbp": 1.35183
   },
@@ -57,7 +57,7 @@
       "extreme": null
     }
   },
-  "last_ts": "2026-09-13T17:30:00-04:00",
+  "last_ts": "2026-09-13T17:45:00-04:00",
   "open_trades": [
     {
       "case_key": "gbp_high",
