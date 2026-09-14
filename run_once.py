@@ -156,8 +156,30 @@ def place_market_order(instrument: str, units: int, sl_price: float, tp_price: f
 
 def fetch_oanda_trade(trade_id: str) -> dict:
     r = requests.get(f"{OANDA_BASE}/v3/accounts/{OANDA_ACCOUNT_ID}/trades/{trade_id}", headers=OANDA_HEADERS, timeout=30)
+    if r.status_code == 404:
+        # Seen on the practice environment: a trade that genuinely opened and closed can still
+        # 404 on direct lookup afterwards. Fall back to the transaction ledger, which reliably
+        # keeps the ORDER_FILL that closed it (with tradesClosed) even when this endpoint won't.
+        closed = find_trade_close_in_transactions(trade_id)
+        if closed is not None:
+            return closed
     r.raise_for_status()
     return r.json()["trade"]
+
+
+def find_trade_close_in_transactions(trade_id: str, lookback: int = 500) -> dict | None:
+    last = requests.get(f"{OANDA_BASE}/v3/accounts/{OANDA_ACCOUNT_ID}/transactions/idrange",
+                         headers=OANDA_HEADERS, params={"from": 1, "to": 1}, timeout=30).json()["lastTransactionID"]
+    lo = max(1, int(last) - lookback)
+    r = requests.get(f"{OANDA_BASE}/v3/accounts/{OANDA_ACCOUNT_ID}/transactions/idrange",
+                      headers=OANDA_HEADERS, params={"from": lo, "to": last}, timeout=30)
+    r.raise_for_status()
+    for txn in r.json()["transactions"]:
+        for closed in txn.get("tradesClosed", []) or []:
+            if closed["tradeID"] == str(trade_id):
+                return {"state": "CLOSED", "averageClosePrice": closed["price"],
+                        "realizedPL": closed["realizedPL"], "closeTime": txn["time"]}
+    return None
 
 
 # ---------------------------------------------------------------------------
