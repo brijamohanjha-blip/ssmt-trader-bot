@@ -16,8 +16,8 @@
     "eur_high": {
       "triggered": true,
       "invalidated": false,
-      "entered": false,
-      "touch_count": 1,
+      "entered": true,
+      "touch_count": 2,
       "leader_cum_high": 1.15979,
       "leader_cum_low": 1.15938,
       "lagger_cum_high": 1.35288,
@@ -62,7 +62,7 @@
       "extreme": 1.15931
     }
   },
-  "last_ts": "2026-09-13T19:30:00-04:00",
+  "last_ts": "2026-09-13T19:45:00-04:00",
   "open_trades": [
     {
       "case_key": "gbp_high",
