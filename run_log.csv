@@ -686,3 +686,4 @@ timestamp_utc,event,case,detail
 2026-09-14T16:15:59.353601+00:00,NEW_WINDOW,,2026-09-13 Q4 (NY PM) (prior valid: True)
 2026-09-14T16:15:59.353747+00:00,TRIGGER,eur_high,leader=EUR broke its prior-quarter high
 2026-09-14T16:15:59.353905+00:00,PROCESSED,,1 new candle(s), caught up to 2026-09-14 12:00:00-04:00
+2026-09-14T16:20:52.220178+00:00,NO_NEW_CANDLES,,
