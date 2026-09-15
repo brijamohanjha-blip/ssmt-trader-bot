@@ -990,3 +990,4 @@ timestamp_utc,event,case,detail
 2026-09-15T16:15:57.162851+00:00,NEW_WINDOW,,2026-09-14 Q4 (NY PM) (prior valid: True)
 2026-09-15T16:15:57.163024+00:00,TRIGGER,gbp_low,leader=GBP broke its prior-quarter low
 2026-09-15T16:15:57.163083+00:00,PROCESSED,,1 new candle(s), caught up to 2026-09-15 12:00:00-04:00
+2026-09-15T16:20:53.189435+00:00,NO_NEW_CANDLES,,
