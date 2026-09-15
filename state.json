@@ -8,9 +8,9 @@
   },
   "cur_range_acc": {
     "high_eur": 1.15398,
-    "low_eur": 1.15362,
+    "low_eur": 1.1536,
     "high_gbp": 1.3482,
-    "low_gbp": 1.34763
+    "low_gbp": 1.34749
   },
   "case_state": {
     "eur_high": {
@@ -19,9 +19,9 @@
       "entered": false,
       "touch_count": 0,
       "leader_cum_high": 1.15398,
-      "leader_cum_low": 1.15362,
+      "leader_cum_low": 1.1536,
       "lagger_cum_high": 1.3482,
-      "lagger_cum_low": 1.34763,
+      "lagger_cum_low": 1.34749,
       "threshold": 1.34815,
       "extreme": 1.34872
     },
@@ -31,9 +31,9 @@
       "entered": false,
       "touch_count": 0,
       "leader_cum_high": 1.3482,
-      "leader_cum_low": 1.34763,
+      "leader_cum_low": 1.34749,
       "lagger_cum_high": 1.15398,
-      "lagger_cum_low": 1.15362,
+      "lagger_cum_low": 1.1536,
       "threshold": 1.1537525,
       "extreme": 1.1541
     },
@@ -43,9 +43,9 @@
       "entered": false,
       "touch_count": 0,
       "leader_cum_high": 1.15398,
-      "leader_cum_low": 1.15362,
+      "leader_cum_low": 1.1536,
       "lagger_cum_high": 1.3482,
-      "lagger_cum_low": 1.34763,
+      "lagger_cum_low": 1.34749,
       "threshold": 1.34701,
       "extreme": 1.34644
     },
@@ -55,14 +55,14 @@
       "entered": false,
       "touch_count": 0,
       "leader_cum_high": 1.3482,
-      "leader_cum_low": 1.34763,
+      "leader_cum_low": 1.34749,
       "lagger_cum_high": 1.15398,
-      "lagger_cum_low": 1.15362,
+      "lagger_cum_low": 1.1536,
       "threshold": 1.1530574999999998,
       "extreme": 1.15271
     }
   },
-  "last_ts": "2026-09-15T06:00:00-04:00",
+  "last_ts": "2026-09-15T06:15:00-04:00",
   "open_trades": [],
   "weekly_pnl": -97.0,
   "weekly_key": "2026-09-13/2026-09-19",
