@@ -1151,3 +1151,4 @@ timestamp_utc,event,case,detail
 2026-09-16T04:31:08.871553+00:00,TRIGGER,gbp_high,leader=GBP broke its prior-quarter high
 2026-09-16T04:31:08.871757+00:00,FIRST_TOUCH_IGNORED,gbp_high,threshold=1.15420 candle_time=2026-09-16 00:15:00-04:00
 2026-09-16T04:31:08.871902+00:00,PROCESSED,,1 new candle(s), caught up to 2026-09-16 00:15:00-04:00
+2026-09-16T04:35:40.864680+00:00,NO_NEW_CANDLES,,
