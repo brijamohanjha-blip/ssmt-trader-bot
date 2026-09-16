@@ -9,7 +9,7 @@
   "cur_range_acc": {
     "high_eur": 1.15454,
     "low_eur": 1.15319,
-    "high_gbp": 1.348,
+    "high_gbp": 1.34818,
     "low_gbp": 1.34653
   },
   "case_state": {
@@ -30,7 +30,7 @@
       "invalidated": false,
       "entered": false,
       "touch_count": 0,
-      "leader_cum_high": 1.348,
+      "leader_cum_high": 1.34818,
       "leader_cum_low": 1.34653,
       "lagger_cum_high": 1.15454,
       "lagger_cum_low": 1.15319,
@@ -62,7 +62,7 @@
       "extreme": 1.15363
     }
   },
-  "last_ts": "2026-09-15T22:45:00-04:00",
+  "last_ts": "2026-09-15T23:00:00-04:00",
   "open_trades": [
     {
       "case_key": "gbp_low",
