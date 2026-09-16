@@ -1298,3 +1298,4 @@ timestamp_utc,event,case,detail
 2026-09-16T16:15:49.307281+00:00,TRIGGER,gbp_low,leader=GBP broke its prior-quarter low
 2026-09-16T16:15:49.307376+00:00,PROCESSED,,1 new candle(s), caught up to 2026-09-16 12:00:00-04:00
 2026-09-16T16:20:51.072781+00:00,NO_NEW_CANDLES,,
+2026-09-16T16:25:44.171138+00:00,NO_NEW_CANDLES,,
