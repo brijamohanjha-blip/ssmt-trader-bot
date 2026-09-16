@@ -52,8 +52,8 @@
     "gbp_low": {
       "triggered": true,
       "invalidated": false,
-      "entered": false,
-      "touch_count": 1,
+      "entered": true,
+      "touch_count": 2,
       "leader_cum_high": 1.3446,
       "leader_cum_low": 1.34424,
       "lagger_cum_high": 1.15383,
@@ -62,12 +62,26 @@
       "extreme": 1.15275
     }
   },
-  "last_ts": "2026-09-16T13:00:00-04:00",
-  "open_trades": [],
+  "last_ts": "2026-09-16T13:15:00-04:00",
+  "open_trades": [
+    {
+      "case_key": "gbp_low",
+      "pair_key": "eur",
+      "instrument": "EUR_USD",
+      "direction": "long",
+      "entry_price": 1.15348,
+      "sl_price": 1.1521325,
+      "tp_price": 1.1551325,
+      "sl_pips": 10.0,
+      "units": 100000,
+      "entry_time": "2026-09-16T13:15:00-04:00",
+      "oanda_trade_id": "51"
+    }
+  ],
   "weekly_pnl": -317.0,
   "weekly_key": "2026-09-13/2026-09-19",
   "instrument_lock": {
-    "eur": false,
+    "eur": true,
     "gbp": false
   }
 }
