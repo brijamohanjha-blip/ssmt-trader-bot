@@ -1327,3 +1327,4 @@ timestamp_utc,event,case,detail
 2026-09-16T18:16:02.305771+00:00,TRIGGER,eur_high,leader=EUR broke its prior-quarter high
 2026-09-16T18:16:02.305930+00:00,PROCESSED,,1 new candle(s), caught up to 2026-09-16 14:00:00-04:00
 2026-09-16T18:20:47.572681+00:00,NO_NEW_CANDLES,,
+2026-09-16T18:25:39.394180+00:00,NO_NEW_CANDLES,,
