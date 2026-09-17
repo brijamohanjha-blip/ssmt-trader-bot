@@ -2,20 +2,36 @@
 SSMT EUR/GBP liquidity-sweep divergence strategy -- single-shot runner for GitHub Actions.
 
 Unlike live_trader.py (which loops forever in one process), this script is designed to be
-invoked fresh every ~15 minutes by a GitHub Actions cron schedule. State (which quarter we're
-in, per-case trigger/invalidation progress, the last candle timestamp processed) is persisted
-to state.json and committed back to the repo by the workflow after each run, so the strategy
-logic picks up exactly where it left off on the next invocation.
+invoked fresh every ~5 minutes by a GitHub Actions cron schedule. State (which trading day we're
+in, per-case trigger/invalidation progress, the last candle timestamp processed) is persisted to
+state.json and committed back to the repo by the workflow after each run, so the strategy logic
+picks up exactly where it left off on the next invocation.
 
-Rules match analysis.ipynb section 3 exactly (frozen, no re-tuning here):
-  - Across every consecutive 6-hour quarter transition, a leader pair sweeping its own
-    prior-quarter extreme while the lagger fails to follow means SSMT is active.
-  - While SSMT stays active, every genuine touch of the lagger's 25%-retracement line (the
-    line must fall inside that candle's own high/low range) is tracked -- the FIRST touch is
-    always ignored, the trade only fires on the SECOND touch.
-  - Stop: fixed 10 pips. Target: fixed 20 pips (2:1). Risk: fixed $100/trade.
-  - At most one trade per quarter per instrument -- if both the high-side and low-side case
-    would fire for the same lagger in the same quarter, only the earlier one is taken.
+Rules match the 1H / daily-quarter restructuring in analysis_1h_daily_quarters.ipynb sections 1-6
+(frozen, no re-tuning here):
+  - Timeframe: 1-hour candles (was 15m in the earlier version of this bot).
+  - "Quarter" = one full trading day, 18:00 NY -> next 18:00 NY (was 4x6h quarters/day).
+    Across every pair of consecutive trading days, a leader pair sweeping its own prior-day
+    extreme while the lagger fails to follow means SSMT is active.
+  - While SSMT stays active, every genuine touch of the lagger's 25%-retracement line (the line
+    must fall inside that hour's own high/low range) is tracked -- the FIRST touch is always
+    ignored, the trade only fires on the SECOND touch.
+  - Stop: fixed 10 pips. Target: fixed 40 pips (4:1, was 2:1 in the earlier version -- this ratio
+    tested best across the SL/TP grid on this timeframe). Risk: fixed $100/trade.
+  - At most one trade per trading day per instrument -- if both the high-side and low-side case
+    would fire for the same lagger on the same day, only the earlier one is taken.
+
+  NOTE: an earlier draft of this file also gated entries on a DeMark TD Sequential confirmation
+  filter (section 7 of the same notebook, later folded into ssmt_td_research_journal.ipynb). That
+  filter's validation turned out to have a real bug -- the notebook computed TD Sequential counts
+  on each pair's *un-merged* close series but looked them up using indices from the merged
+  (inner-joined) series, which drop different candles per pair (~364 EUR / ~168 GBP over 21
+  years). Row-level agreement between the buggy and correctly-aligned filter decision was only
+  ~48% -- barely better than chance. Recomputed with correct alignment, the filter has *negative*
+  edge in both history halves (2005-2015 and 2015-2026) and loses money overall at $100
+  risk/$18 fee, reversing the notebook's "validated, split-robust improvement" conclusion. It was
+  removed here rather than deployed. The plain double-touch SL10/TP40 rule below (no TD filter)
+  is what actually holds up: positive, consistent edge across both halves (6.59pp / 5.21pp).
 
 SAFETY: DRY_RUN defaults to true (reads the DRY_RUN env var). In dry-run, no real orders are
 placed -- only Telegram alerts are sent describing what *would* have been taken.
@@ -49,10 +65,8 @@ NY_TZ = "America/New_York"
 PIP = 0.0001
 RISK_PER_TRADE = 100.0
 FIXED_SL_PIPS = 10.0
-FIXED_TP_PIPS = 20.0
+FIXED_TP_PIPS = 40.0
 RETRACE_PCT = 0.25
-
-Q_ORDER = {"Q1 (Asia)": 0, "Q2 (London)": 1, "Q3 (NY AM)": 2, "Q4 (NY PM)": 3}
 
 CASES = [
     dict(key="eur_high", leader="eur", lagger="gbp", side="high", direction="short"),
@@ -61,7 +75,7 @@ CASES = [
     dict(key="gbp_low", leader="gbp", lagger="eur", side="low", direction="long"),
 ]
 
-BACKFILL_DAYS = 3  # first-ever run only: enough to cover current + previous full quarter
+BACKFILL_DAYS = 3  # first-ever run only: enough to cover current + previous full trading day
 STATE_PATH = Path(__file__).parent / "state.json"
 LOG_PATH = Path(__file__).parent / "run_log.csv"
 
@@ -87,23 +101,12 @@ def notify_telegram(text: str):
         log("TELEGRAM_ERROR", detail=str(e))
 
 
-def daily_quarter_of(ts: pd.Timestamp) -> str:
-    h = ts.hour
-    if 18 <= h < 24:
-        return "Q1 (Asia)"
-    if 0 <= h < 6:
-        return "Q2 (London)"
-    if 6 <= h < 12:
-        return "Q3 (NY AM)"
-    return "Q4 (NY PM)"
-
-
 def trading_day_of(ts: pd.Timestamp) -> pd.Timestamp:
     return (ts - pd.Timedelta(hours=18)).normalize()
 
 
 def quarter_seq_id_of(ts: pd.Timestamp) -> str:
-    return f"{trading_day_of(ts).strftime('%Y-%m-%d')} {daily_quarter_of(ts)}"
+    return trading_day_of(ts).strftime("%Y-%m-%d")
 
 
 def trading_week_key(ts: pd.Timestamp) -> str:
@@ -115,7 +118,7 @@ def trading_week_key(ts: pd.Timestamp) -> str:
 
 def fetch_candles(instrument: str, start: pd.Timestamp) -> pd.DataFrame:
     start_utc = start.tz_convert("UTC") if start.tzinfo is not None else start.tz_localize("UTC")
-    params = {"granularity": "M15", "price": "M", "from": start_utc.strftime("%Y-%m-%dT%H:%M:%SZ"), "count": 500}
+    params = {"granularity": "H1", "price": "M", "from": start_utc.strftime("%Y-%m-%dT%H:%M:%SZ"), "count": 500}
     r = requests.get(f"{OANDA_BASE}/v3/instruments/{instrument}/candles", headers=OANDA_HEADERS, params=params, timeout=30)
     r.raise_for_status()
     candles = [c for c in r.json()["candles"] if c["complete"]]
@@ -202,7 +205,7 @@ class LiveState:
         self.open_trades = []  # list of dicts: pending dry-run trades not yet resolved to SL/TP
         self.weekly_pnl = 0.0
         self.weekly_key = None
-        self.instrument_lock = {"eur": False, "gbp": False}  # 1-trade-per-quarter-per-instrument cap
+        self.instrument_lock = {"eur": False, "gbp": False}  # 1-trade-per-day-per-instrument cap
 
     def start_new_window(self, prior_range):
         self.prior_range = prior_range
@@ -291,7 +294,6 @@ def save_state(state: LiveState):
 def process_candle(state: LiveState, row: pd.Series, live: bool):
     ts = row["timestamp"]
     qid = quarter_seq_id_of(ts)
-    q_label = daily_quarter_of(ts)
 
     if state.current_qid is None:
         state.current_qid = qid
@@ -301,8 +303,7 @@ def process_candle(state: LiveState, row: pd.Series, live: bool):
         return
 
     if qid != state.current_qid:
-        prev_q_label = state.current_qid.split(" ", 1)[1]
-        valid = (Q_ORDER[q_label] - Q_ORDER[prev_q_label]) % 4 == 1
+        valid = (pd.Timestamp(qid) - pd.Timestamp(state.current_qid)).days == 1
         completed_range = state.cur_range_acc
         state.current_qid = qid
         state.cur_range_acc = dict(high_eur=row["high_eur"], low_eur=row["low_eur"],
@@ -340,7 +341,7 @@ def process_candle(state: LiveState, row: pd.Series, live: bool):
                 if lagger_ok:
                     st["triggered"] = True
                     if live:
-                        log("TRIGGER", c["key"], f"leader={c['leader'].upper()} broke its prior-quarter {c['side']}")
+                        log("TRIGGER", c["key"], f"leader={c['leader'].upper()} broke its prior-day {c['side']}")
                 else:
                     st["invalidated"] = True
                     continue
@@ -362,9 +363,9 @@ def process_candle(state: LiveState, row: pd.Series, live: bool):
                         log("FIRST_TOUCH_IGNORED", c["key"], f"threshold={st['threshold']:.5f} candle_time={row['timestamp']}")
                 else:
                     if state.instrument_lock.get(c["lagger"], False):
-                        st["entered"] = True  # instrument already taken this quarter by the sibling case
+                        st["entered"] = True  # instrument already taken this day by the sibling case
                         if live:
-                            log("SKIPPED_DEDUPE", c["key"], f"{c['lagger'].upper()} already traded this quarter")
+                            log("SKIPPED_DEDUPE", c["key"], f"{c['lagger'].upper()} already traded this day")
                     else:
                         state.instrument_lock[c["lagger"]] = True
                         fire_entry(state, c, st, row, live)
@@ -506,7 +507,7 @@ def main():
     state = load_state()
     first_run = state.last_ts is None
 
-    start = (pd.Timestamp.now(tz="UTC") - pd.Timedelta(days=BACKFILL_DAYS)) if first_run else (state.last_ts + pd.Timedelta(minutes=15))
+    start = (pd.Timestamp.now(tz="UTC") - pd.Timedelta(days=BACKFILL_DAYS)) if first_run else (state.last_ts + pd.Timedelta(hours=1))
 
     try:
         eur = fetch_candles(INSTRUMENTS["eur"], start)

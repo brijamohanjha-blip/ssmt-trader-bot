@@ -1,73 +1,63 @@
 {
-  "current_qid": "2026-09-16 Q3 (NY AM)",
-  "prior_range": {
-    "high_eur": 1.14837,
-    "low_eur": 1.14594,
-    "high_gbp": 1.34022,
-    "low_gbp": 1.33729
-  },
-  "cur_range_acc": {
-    "high_eur": 1.14978,
-    "low_eur": 1.14682,
-    "high_gbp": 1.34066,
-    "low_gbp": 1.33496
-  },
+  "current_qid": null,
+  "prior_range": null,
+  "cur_range_acc": null,
   "case_state": {
     "eur_high": {
       "triggered": false,
-      "invalidated": true,
+      "invalidated": false,
       "entered": false,
       "touch_count": 0,
-      "leader_cum_high": 1.14846,
-      "leader_cum_low": 1.14682,
-      "lagger_cum_high": 1.34066,
-      "lagger_cum_low": 1.33496,
-      "threshold": 1.3394875,
-      "extreme": 1.34022
+      "leader_cum_high": "-inf",
+      "leader_cum_low": "inf",
+      "lagger_cum_high": "-inf",
+      "lagger_cum_low": "inf",
+      "threshold": null,
+      "extreme": null
     },
     "gbp_high": {
-      "triggered": true,
+      "triggered": false,
       "invalidated": false,
-      "entered": true,
-      "touch_count": 2,
-      "leader_cum_high": 1.34031,
-      "leader_cum_low": 1.33942,
-      "lagger_cum_high": 1.14803,
-      "lagger_cum_low": 1.14724,
-      "threshold": 1.1477624999999998,
-      "extreme": 1.14837
+      "entered": false,
+      "touch_count": 0,
+      "leader_cum_high": "-inf",
+      "leader_cum_low": "inf",
+      "lagger_cum_high": "-inf",
+      "lagger_cum_low": "inf",
+      "threshold": null,
+      "extreme": null
     },
     "eur_low": {
       "triggered": false,
       "invalidated": false,
       "entered": false,
       "touch_count": 0,
-      "leader_cum_high": 1.14978,
-      "leader_cum_low": 1.14682,
-      "lagger_cum_high": 1.34066,
-      "lagger_cum_low": 1.33496,
-      "threshold": 1.3380225000000001,
-      "extreme": 1.33729
+      "leader_cum_high": "-inf",
+      "leader_cum_low": "inf",
+      "lagger_cum_high": "-inf",
+      "lagger_cum_low": "inf",
+      "threshold": null,
+      "extreme": null
     },
     "gbp_low": {
-      "triggered": true,
+      "triggered": false,
       "invalidated": false,
       "entered": false,
       "touch_count": 0,
-      "leader_cum_high": 1.34066,
-      "leader_cum_low": 1.33604,
-      "lagger_cum_high": 1.14806,
-      "lagger_cum_low": 1.14724,
-      "threshold": 1.1465475,
-      "extreme": 1.14594
+      "leader_cum_high": "-inf",
+      "leader_cum_low": "inf",
+      "lagger_cum_high": "-inf",
+      "lagger_cum_low": "inf",
+      "threshold": null,
+      "extreme": null
     }
   },
-  "last_ts": "2026-09-17T10:45:00-04:00",
+  "last_ts": null,
   "open_trades": [],
-  "weekly_pnl": -548.0,
-  "weekly_key": "2026-09-13/2026-09-19",
+  "weekly_pnl": 0.0,
+  "weekly_key": null,
   "instrument_lock": {
-    "eur": true,
+    "eur": false,
     "gbp": false
   }
 }
