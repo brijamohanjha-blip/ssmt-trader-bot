@@ -7,9 +7,9 @@
     "low_gbp": 1.33729
   },
   "cur_range_acc": {
-    "high_eur": 1.14803,
+    "high_eur": 1.14804,
     "low_eur": 1.14724,
-    "high_gbp": 1.34031,
+    "high_gbp": 1.34051,
     "low_gbp": 1.33942
   },
   "case_state": {
@@ -18,9 +18,9 @@
       "invalidated": false,
       "entered": false,
       "touch_count": 0,
-      "leader_cum_high": 1.14803,
+      "leader_cum_high": 1.14804,
       "leader_cum_low": 1.14724,
-      "lagger_cum_high": 1.34031,
+      "lagger_cum_high": 1.34051,
       "lagger_cum_low": 1.33942,
       "threshold": 1.3394875,
       "extreme": 1.34022
@@ -28,8 +28,8 @@
     "gbp_high": {
       "triggered": true,
       "invalidated": false,
-      "entered": false,
-      "touch_count": 1,
+      "entered": true,
+      "touch_count": 2,
       "leader_cum_high": 1.34031,
       "leader_cum_low": 1.33942,
       "lagger_cum_high": 1.14803,
@@ -42,9 +42,9 @@
       "invalidated": false,
       "entered": false,
       "touch_count": 0,
-      "leader_cum_high": 1.14803,
+      "leader_cum_high": 1.14804,
       "leader_cum_low": 1.14724,
-      "lagger_cum_high": 1.34031,
+      "lagger_cum_high": 1.34051,
       "lagger_cum_low": 1.33942,
       "threshold": 1.3380225000000001,
       "extreme": 1.33729
@@ -54,20 +54,34 @@
       "invalidated": false,
       "entered": false,
       "touch_count": 0,
-      "leader_cum_high": 1.34031,
+      "leader_cum_high": 1.34051,
       "leader_cum_low": 1.33942,
-      "lagger_cum_high": 1.14803,
+      "lagger_cum_high": 1.14804,
       "lagger_cum_low": 1.14724,
       "threshold": 1.1465475,
       "extreme": 1.14594
     }
   },
-  "last_ts": "2026-09-17T06:00:00-04:00",
-  "open_trades": [],
+  "last_ts": "2026-09-17T06:15:00-04:00",
+  "open_trades": [
+    {
+      "case_key": "gbp_high",
+      "pair_key": "eur",
+      "instrument": "EUR_USD",
+      "direction": "short",
+      "entry_price": 1.14784,
+      "sl_price": 1.1487624999999997,
+      "tp_price": 1.1457624999999998,
+      "sl_pips": 10.0,
+      "units": -100000,
+      "entry_time": "2026-09-17T06:15:00-04:00",
+      "oanda_trade_id": "59"
+    }
+  ],
   "weekly_pnl": -455.0,
   "weekly_key": "2026-09-13/2026-09-19",
   "instrument_lock": {
-    "eur": false,
+    "eur": true,
     "gbp": false
   }
 }
