@@ -7,9 +7,9 @@
     "low_gbp": 1.33363
   },
   "cur_range_acc": {
-    "high_eur": 1.14788,
-    "low_eur": 1.14752,
-    "high_gbp": 1.33606,
+    "high_eur": 1.14806,
+    "low_eur": 1.14744,
+    "high_gbp": 1.33623,
     "low_gbp": 1.33544
   },
   "case_state": {
@@ -18,9 +18,9 @@
       "invalidated": false,
       "entered": false,
       "touch_count": 0,
-      "leader_cum_high": 1.14788,
-      "leader_cum_low": 1.14752,
-      "lagger_cum_high": 1.33606,
+      "leader_cum_high": 1.14806,
+      "leader_cum_low": 1.14744,
+      "lagger_cum_high": 1.33623,
       "lagger_cum_low": 1.33544,
       "threshold": 1.3389025,
       "extreme": 1.34066
@@ -30,10 +30,10 @@
       "invalidated": false,
       "entered": false,
       "touch_count": 0,
-      "leader_cum_high": 1.33606,
+      "leader_cum_high": 1.33623,
       "leader_cum_low": 1.33544,
-      "lagger_cum_high": 1.14788,
-      "lagger_cum_low": 1.14752,
+      "lagger_cum_high": 1.14806,
+      "lagger_cum_low": 1.14744,
       "threshold": 1.1487375,
       "extreme": 1.14978
     },
@@ -42,9 +42,9 @@
       "invalidated": false,
       "entered": false,
       "touch_count": 0,
-      "leader_cum_high": 1.14788,
-      "leader_cum_low": 1.14752,
-      "lagger_cum_high": 1.33606,
+      "leader_cum_high": 1.14806,
+      "leader_cum_low": 1.14744,
+      "lagger_cum_high": 1.33623,
       "lagger_cum_low": 1.33544,
       "threshold": 1.3353875,
       "extreme": 1.33363
@@ -54,15 +54,15 @@
       "invalidated": false,
       "entered": false,
       "touch_count": 0,
-      "leader_cum_high": 1.33606,
+      "leader_cum_high": 1.33623,
       "leader_cum_low": 1.33544,
-      "lagger_cum_high": 1.14788,
-      "lagger_cum_low": 1.14752,
+      "lagger_cum_high": 1.14806,
+      "lagger_cum_low": 1.14744,
       "threshold": 1.1466525,
       "extreme": 1.14561
     }
   },
-  "last_ts": "2026-09-17T19:00:00-04:00",
+  "last_ts": "2026-09-17T20:00:00-04:00",
   "open_trades": [],
   "weekly_pnl": -199.99999999997797,
   "weekly_key": "2026-09-13/2026-09-19",
